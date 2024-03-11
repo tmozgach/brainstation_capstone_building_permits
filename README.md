@@ -1,6 +1,6 @@
-# Unraveling Vancouver's Housing Challenge through Building Permits Analysis
+# 🏡 Unraveling Vancouver's Housing Challenge through Building Permits Analysis 🏡 
 
-## Table of Contents <a class="anchor" id="toc"></a>
+## 📒 Table of Contents <a class="anchor" id="toc"></a>
 - [Project Overview](#overview)
     - [Introduction](#intro)
     - [Problem Statement](#problem)
@@ -11,25 +11,34 @@
     - [Data Dictionary](#data-dict)
     - [Data Source](#data-source)
     - [Data Coverage](#data-coverage)
+- [Project Plan](#plan)
+    - [Data Cleaning](#cleaning)
+    - [Exploratory Data Analysis](#eda)
+    - [Feature Engineering](#engine)
+    - [Feature Selection](#select)
+    - [Model Development](#develop)
+    - [Model Interpretation](#interpret)
+    - [Model Deployment](#deploy)
+    - [User Interface Development](#ui)
 ---
 
-## Project Overview <a class="anchor" id="overview"></a>
+## ✏️ Project Overview <a class="anchor" id="overview"></a>
 
-### Introduction <a class="anchor" id="intro"></a>
+### ℹ Introduction <a class="anchor" id="intro"></a>
 
 Vancouver is currently grappling with a significant housing challenge marked by soaring property prices and a scarcity of affordable housing. This project endeavors to investigate the intricate relationship between Vancouver's housing crisis and the city's building permit dynamics.
 
 By looking at the dataset of building permits issued since 2017, I aim to uncover insights into how the permitting process contributes to or mitigates the housing shortage. The analysis will delve into the patterns, timelines, and characteristics of issued permits to identify potential bottlenecks and inefficiencies. Understanding the nuances of the permitting process, including the types of constructions and regional variations, can offer valuable information for crafting effective urban development and housing solutions.
 
 
-### Problem Statement <a class="anchor" id="problem"></a>
+### 🎯 Problem Statement <a class="anchor" id="problem"></a>
 The goal is to provide evidence-based insights that inform policy decisions, aid city planning, and foster collaborations among stakeholders. Through this project, I aspire to contribute meaningful knowledge towards addressing Vancouver's housing affordability challenge and creating a more accessible and equitable living environment for its residents.
 
 **City Planners and Officials** can use the predictions to optimize the workflow, allocate resources efficiently, and improve the overall efficiency of the permitting process.
 
 Knowing the estimated permit issuance time can help **Applicants and Developers** plan construction timelines more accurately.
 
-### The Big Ideas <a class="anchor" id="ideas"></a>
+### 💡 The Big Ideas <a class="anchor" id="ideas"></a> 💡
  
 **Identifying High-Demand Areas:** Use the building permits data to identify neighborhoods or zones with high demand for housing. This information can help city planners and developers target specific areas for new construction projects.
 
@@ -39,13 +48,13 @@ Knowing the estimated permit issuance time can help **Applicants and Developers*
 
 **Spatial Analysis:** Use geospatial data to visualize the distribution of building permits across the city. This can help in identifying areas with concentrated development and areas that may need more attention
 
-### Potential Impact <a class="anchor" id="impact"></a>
+### 🤝😊 Potential Impact <a class="anchor" id="impact"></a>
  The societal value of this project lies in addressing a critical issue  that directly impacts the quality of life for Vancouver residents. By quantifying the scale of the problem through data analysis, I can  provide valuable information to policymakers and urban planners. This could lead to more informed decisions on housing development, potentially alleviating the shortage and making housing more accessible.
 
 [Back to top](#toc)
 
 ---
-## Dataset <a class="anchor" id="dataset"></a>
+## 📜📜📜 Dataset <a class="anchor" id="dataset"></a>
 
 ### Dataset Description <a class="anchor" id="desc"></a>
 Building permits are required for new buildings, additions or alterations to existing buildings, and for demolitions or salvage and abatement work.
@@ -64,7 +73,7 @@ There may be addresses that do not return coordinates through the geocoding proc
 
 There may be some loss of quality from data entry errors and omissions, in particular where the original application date was prior to May 2016 (when permit software changed).
 
-### Data Dictionary <a class="anchor" id="data-dict"></a>
+### 📑 Data Dictionary <a class="anchor" id="data-dict"></a>
 | Field Name | Type | Description | Sample |
 |------------|------|-------------|--------|
 | PermitNumber | text | Unique permit number generated at application date; there may be multiple permits for one project site BU - Original Permit application was made in previous software BP - Building Permit DB - Combined Development & Building Permit | BP-2019-04164 |
@@ -88,17 +97,54 @@ There may be some loss of quality from data entry errors and omissions, in parti
 | YearMonth | text | No description available for this field. | 2019-11 |
 | geo_point_2d | geo point | No description available for this field. | [49.2450036,-123.1965627] |
 
-### Data Source <a class="anchor" id="data-source"></a>
+### 🗂️ Data Source <a class="anchor" id="data-source"></a>
 Dataset can be found [here](https://opendata.vancouver.ca/explore/dataset/issued-building-permits/information/)
 
-### Data Coverage <a class="anchor" id="data-coverage"></a>
+### 🗺️ Data Coverage <a class="anchor" id="data-coverage"></a>
 - Temporal Coverage
     - Starting Date: 2016
     - Ending Date: 2024
     
 - Geospatial Coverage
     - Vancouver, Canada
-
 [Back to top](#toc)
 
 ---
+## 📅  Project Plan <a class="anchor" id="plan"></a>
+
+### ✅ Data Cleaning / Preprocessing 🚿  <a class="anchor" id="cleaning"></a>  
+- Formatting & Validity
+- Remove records with the missing data which makes up less than 3% of the total observations in a column 
+
+### ✅ Exploratory Data Analysis 🔍 <a class="anchor" id="eda"></a>
+- Univariate Visualizations
+- Multivariate Visualizations
+- Time Series
+- Statistical Analysis
+- Correlation Analysis
+
+### ✅ Feature Engineering 🔧 <a class="anchor" id="engine"></a>
+- One Hot Encoding
+- The Bag-of-Words (Count)
+
+### ⏳ Model Development 🔨 <a class="anchor" id="develop"></a>
+- Model Tested:
+    - ✅ Logistic Regression **(Baseline Model)**
+    - ✅ Decision Tree **(Baseline Model)**
+    - 🔜 Seasonal ARIMA
+    - 🔜 XGBoost
+    - 🔜 Random Forest
+    - 🔜 Neural Networks
+ 
+- 🔜  Model Evaluation 📏 
+
+- 🔜 Model Performance  🚀 
+
+### 🔜 Model Interpretation 🔢 <a class="anchor" id="interpret"></a>
+
+### 🔜 Feature Selection 📤 <a class="anchor" id="select"></a>
+- Principal Component Analysis
+
+### 🔜  Model Deployment 🚛 <a class="anchor" id="deploy"></a>
+
+### 🔜 User Interface Development 🖥️ <a class="anchor" id="ui"></a>
