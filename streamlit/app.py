@@ -7,6 +7,47 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import confusion_matrix
 import matplotlib.pyplot as plt
 import numpy as np
+import pickle
+import nltk
+import string
+from nltk.corpus import stopwords
+from nltk.stem import WordNetLemmatizer
+from nltk.stem import PorterStemmer
+from nltk.corpus import wordnet
+import datetime
+from sklearn.preprocessing import RobustScaler
+
+ENGLISH_STOP_WORDS = stopwords.words('english')
+nltk.download('wordnet')
+
+stemmer = nltk.stem.PorterStemmer()
+lemm = WordNetLemmatizer()
+
+def my_tokenizer(sentence):
+
+    sentence = sentence.replace('\r', ' ')
+    sentence = sentence.replace('\n', ' ')
+
+    # remove punctuation
+    for punctuation_mark in string.punctuation:
+        sentence = sentence.replace(punctuation_mark,'')
+
+    # split sentence into words
+    listofwords = sentence.split(' ')
+    listofstemmed_words = []
+
+    listoflemmatize_words = []
+    for word in listofwords:
+        if (not word in ENGLISH_STOP_WORDS) and (word!=''):
+            lemmatized_word = lemm.lemmatize(word, wordnet.VERB)
+            listoflemmatize_words.append(lemmatized_word)
+
+    for word in listoflemmatize_words:
+        stemmed_word = stemmer.stem(word)
+        listofstemmed_words.append(stemmed_word)
+
+    return listofstemmed_words
+
 
 def generate_encoded_df(label, options, prefix):
     # UI input
@@ -22,6 +63,19 @@ def generate_encoded_df(label, options, prefix):
     encoded_df.columns = [prefix + col for col in encoded_df.columns]
 
     return encoded_df
+
+# Load the models from the file
+with open('model.pkl', 'rb') as file:
+    model = pickle.load(file)
+
+with open('bagofwords_ap_model.pkl', 'rb') as file:
+    bagofwords_ap = pickle.load(file)
+
+with open('bagofwords_pr_model.pkl', 'rb') as file:
+    bagofwords_pr = pickle.load(file)
+    
+with open('robust_scaler.pkl', 'rb') as file:
+    scaler = pickle.load(file)
 
 # Define options for each input
 type_of_work_options = ['New Building', 'Salvage and Abatement', 'Addition / Alteration',
@@ -72,24 +126,59 @@ st.subheader("Encoded Features - Area:")
 st.write(area_df)
 
 
-project_value = st.number_input("Project Value (in dollars)", value=0)
+today = datetime.date.today()
+date = st.date_input("Date of Application", value=today)
 
-applicant = st.text_input("Applicant (optional)")
+# Split the selected date into month and day
+month = pd.Series([date.month], name='Month')
+day = pd.Series([date.day], name='Day')
 
-project_description = st.text_area("Project Description (optional)")
+project_value = pd.Series([st.number_input("Project Value (in dollars)", value=0)], name='ProjectValue')
 
-latitude = st.number_input("Latitude")
+project_description = pd.Series([st.text_area("Project Description (optional)")], name='ProjectDescription')
 
-longitude = st.number_input("Longitude")
+applicant = pd.Series([st.text_input("Applicant (optional)")], name='Applicant')
+
+latitude = pd.Series([st.number_input("Latitude")], name='Latitude')
+
+longitude = pd.Series([st.number_input("Longitude")], name='Longitude')
 
 # Combine all encoded features
-all_features = pd.concat([type_of_work_df, property_use_df, specific_use_category_df, area_df], axis=1)
+all_features = pd.concat([project_value, project_description, applicant, month, day, latitude,longitude, type_of_work_df, property_use_df, specific_use_category_df, area_df], axis=1)
 
 
-# Fill missing values
-all_features.fillna(0, inplace=True)
+X_test_pr = bagofwords_pr.transform(all_features["ProjectDescription"])
+# Drop the column
+columns_to_drop = ['ProjectDescription']
+
+# Drop multiple columns in-place
+all_features.drop(columns=columns_to_drop, inplace=True)
+
+# Add the prefix pd for ProjectDescription for columns
+cols = [f'pd_{word}' for word in bagofwords_pr.get_feature_names()]
+# Join the original test dataset and positive bag of words.
+X_test_pr = pd.DataFrame(columns=cols, data=X_test_pr.toarray())
+X_test_extended_with_pr = pd.concat([all_features, X_test_pr], axis=1)
+
+X_test_ap = bagofwords_ap.transform(X_test_extended_with_pr["Applicant"])
+# Drop the column
+columns_to_drop = ['Applicant']
+
+# Drop multiple columns in-place
+X_test_extended_with_pr.drop(columns=columns_to_drop, inplace=True)
+
+# Add the prefix ap for Applicant for columns
+cols = [f'ap_{word}' for word in bagofwords_ap.get_feature_names()]
+# Join the original test dataset and positive bag of words.
+X_test_ap = pd.DataFrame(columns=cols, data=X_test_ap.toarray())
+X_test_extended_with_ap = pd.concat([X_test_extended_with_pr, X_test_ap], axis=1)
+
+X_test_s = scaler.transform(X_test_extended_with_ap)
+
+# Make predictions
+prediction = model.predict(X_test_s)
 
 st.subheader("Features for Prediction:")
-st.write(all_features)
+st.write(prediction)
 
 
