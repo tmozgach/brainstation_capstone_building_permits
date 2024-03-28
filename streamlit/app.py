@@ -16,6 +16,7 @@ from nltk.stem import PorterStemmer
 from nltk.corpus import wordnet
 import datetime
 from sklearn.preprocessing import RobustScaler
+import math
 
 ENGLISH_STOP_WORDS = stopwords.words('english')
 nltk.download('wordnet')
@@ -106,25 +107,12 @@ area_options = ['Victoria-Fraserview', 'Kensington-Cedar Cottage', 'Oakridge',
                 'Strathcona', 'Hastings-Sunrise', 'Shaughnessy', 'Killarney',
                 'Grandview-Woodland', 'South Cambie']
 
+st.title("Estimated Timeline for Building Permit Approval in Vancouver")
 # Generate encoded DataFrames for each input
 type_of_work_df = generate_encoded_df("Type Of Work", type_of_work_options, 'x0_')
 property_use_df = generate_encoded_df("Property Use", property_use_options, 'x1_')
 specific_use_category_df = generate_encoded_df("Specific Use Category", specific_use_category_options, 'x2_')
 area_df = generate_encoded_df("Area", area_options, 'x3_')
-
-# Display encoded DataFrames
-st.subheader("Encoded Features - Type Of Work:")
-st.write(type_of_work_df)
-
-st.subheader("Encoded Features - Property Use:")
-st.write(property_use_df)
-
-st.subheader("Encoded Features - Specific Use Category:")
-st.write(specific_use_category_df)
-
-st.subheader("Encoded Features - Area:")
-st.write(area_df)
-
 
 today = datetime.date.today()
 date = st.date_input("Date of Application", value=today)
@@ -143,42 +131,46 @@ latitude = pd.Series([st.number_input("Latitude")], name='Latitude')
 
 longitude = pd.Series([st.number_input("Longitude")], name='Longitude')
 
-# Combine all encoded features
-all_features = pd.concat([project_value, project_description, applicant, month, day, latitude,longitude, type_of_work_df, property_use_df, specific_use_category_df, area_df], axis=1)
+
+# Create a button to trigger predictions
+predict_button = st.button('Calculate', key='predict_button')
 
 
-X_test_pr = bagofwords_pr.transform(all_features["ProjectDescription"])
-# Drop the column
-columns_to_drop = ['ProjectDescription']
+if predict_button:
+    # Combine all encoded features
+    all_features = pd.concat([project_value, project_description, applicant, month, day, latitude,longitude, type_of_work_df, property_use_df, specific_use_category_df, area_df], axis=1)
 
-# Drop multiple columns in-place
-all_features.drop(columns=columns_to_drop, inplace=True)
 
-# Add the prefix pd for ProjectDescription for columns
-cols = [f'pd_{word}' for word in bagofwords_pr.get_feature_names()]
-# Join the original test dataset and positive bag of words.
-X_test_pr = pd.DataFrame(columns=cols, data=X_test_pr.toarray())
-X_test_extended_with_pr = pd.concat([all_features, X_test_pr], axis=1)
+    X_test_pr = bagofwords_pr.transform(all_features["ProjectDescription"])
+    # Drop the column
+    columns_to_drop = ['ProjectDescription']
 
-X_test_ap = bagofwords_ap.transform(X_test_extended_with_pr["Applicant"])
-# Drop the column
-columns_to_drop = ['Applicant']
+    # Drop multiple columns in-place
+    all_features.drop(columns=columns_to_drop, inplace=True)
 
-# Drop multiple columns in-place
-X_test_extended_with_pr.drop(columns=columns_to_drop, inplace=True)
+    # Add the prefix pd for ProjectDescription for columns
+    cols = [f'pd_{word}' for word in bagofwords_pr.get_feature_names()]
+    # Join the original test dataset and positive bag of words.
+    X_test_pr = pd.DataFrame(columns=cols, data=X_test_pr.toarray())
+    X_test_extended_with_pr = pd.concat([all_features, X_test_pr], axis=1)
 
-# Add the prefix ap for Applicant for columns
-cols = [f'ap_{word}' for word in bagofwords_ap.get_feature_names()]
-# Join the original test dataset and positive bag of words.
-X_test_ap = pd.DataFrame(columns=cols, data=X_test_ap.toarray())
-X_test_extended_with_ap = pd.concat([X_test_extended_with_pr, X_test_ap], axis=1)
+    X_test_ap = bagofwords_ap.transform(X_test_extended_with_pr["Applicant"])
+    # Drop the column
+    columns_to_drop = ['Applicant']
 
-X_test_s = scaler.transform(X_test_extended_with_ap)
+    # Drop multiple columns in-place
+    X_test_extended_with_pr.drop(columns=columns_to_drop, inplace=True)
 
-# Make predictions
-prediction = model.predict(X_test_s)
+    # Add the prefix ap for Applicant for columns
+    cols = [f'ap_{word}' for word in bagofwords_ap.get_feature_names()]
+    # Join the original test dataset and positive bag of words.
+    X_test_ap = pd.DataFrame(columns=cols, data=X_test_ap.toarray())
+    X_test_extended_with_ap = pd.concat([X_test_extended_with_pr, X_test_ap], axis=1)
 
-st.subheader("Features for Prediction:")
-st.write(prediction)
+    X_test_s = scaler.transform(X_test_extended_with_ap)
 
+    # Make predictions
+    prediction = model.predict(X_test_s)
+
+    st.write('Estimated timeline:', math.ceil(prediction[0]), ' days')
 
