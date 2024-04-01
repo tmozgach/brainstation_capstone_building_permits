@@ -1,4 +1,3 @@
-# conda install streamlit , scikit-learn , pandas , matplotlib
 import streamlit as st
 import pandas as pd
 from sklearn.linear_model import LogisticRegression
@@ -18,35 +17,41 @@ import datetime
 from sklearn.preprocessing import RobustScaler
 import math
 
-ENGLISH_STOP_WORDS = stopwords.words('english')
 nltk.download('wordnet')
+nltk.download('punkt')
 
+# Initialize Porter Stemmer and WordNet Lemmatizer
 stemmer = nltk.stem.PorterStemmer()
 lemm = WordNetLemmatizer()
 
+# Define English stopwords
+ENGLISH_STOP_WORDS = set(stopwords.words('english'))
+
 def my_tokenizer(sentence):
-
-    sentence = sentence.replace('\r', ' ')
-    sentence = sentence.replace('\n', ' ')
-
-    # remove punctuation
-    for punctuation_mark in string.punctuation:
-        sentence = sentence.replace(punctuation_mark,'')
-
-    # split sentence into words
+    # Replace newline characters with spaces
+    sentence = sentence.replace('\r', ' ').replace('\n', ' ')
+    
+    # Remove punctuation marks and digits
+    sentence = sentence.translate(str.maketrans('', '', string.punctuation + string.digits))
+    
+    # Tokenize the sentence
     listofwords = sentence.split(' ')
-    listofstemmed_words = []
-
+    
+    # Initialize lists to store lemmatized and stemmed words
     listoflemmatize_words = []
+    listofstemmed_words = []
+    
+    # Lemmatize each word and remove stopwords
     for word in listofwords:
-        if (not word in ENGLISH_STOP_WORDS) and (word!=''):
-            lemmatized_word = lemm.lemmatize(word, wordnet.VERB)
+        if word.lower() not in ENGLISH_STOP_WORDS and word != '':
+            lemmatized_word = lemm.lemmatize(word, pos='v')  # Lemmatize verb forms
             listoflemmatize_words.append(lemmatized_word)
-
+    
+    # Stem each lemmatized word
     for word in listoflemmatize_words:
         stemmed_word = stemmer.stem(word)
         listofstemmed_words.append(stemmed_word)
-
+    
     return listofstemmed_words
 
 
@@ -66,16 +71,16 @@ def generate_encoded_df(label, options, prefix):
     return encoded_df
 
 # Load the models from the file
-with open('model.pkl', 'rb') as file:
+with open('models/model.pkl', 'rb') as file:
     model = pickle.load(file)
 
-with open('bagofwords_ap_model.pkl', 'rb') as file:
+with open('models/bagofwords_ap_model.pkl', 'rb') as file:
     bagofwords_ap = pickle.load(file)
 
-with open('bagofwords_pr_model.pkl', 'rb') as file:
+with open('models/bagofwords_pr_model.pkl', 'rb') as file:
     bagofwords_pr = pickle.load(file)
     
-with open('robust_scaler.pkl', 'rb') as file:
+with open('models/robust_scaler.pkl', 'rb') as file:
     scaler = pickle.load(file)
 
 # Define options for each input
@@ -108,6 +113,7 @@ area_options = ['Victoria-Fraserview', 'Kensington-Cedar Cottage', 'Oakridge',
                 'Grandview-Woodland', 'South Cambie']
 
 st.title("Estimated Timeline for Building Permit Approval in Vancouver")
+
 # Generate encoded DataFrames for each input
 type_of_work_df = generate_encoded_df("Type Of Work", type_of_work_options, 'x0_')
 property_use_df = generate_encoded_df("Property Use", property_use_options, 'x1_')
@@ -117,31 +123,29 @@ area_df = generate_encoded_df("Area", area_options, 'x3_')
 today = datetime.date.today()
 date = st.date_input("Date of Application", value=today)
 
-# Split the selected date into month and day
+# Create Pandas Series for various input fields including month, project value, project description, applicant, latitude, and longitude
 month = pd.Series([date.month], name='Month')
-day = pd.Series([date.day], name='Day')
+
+# Calculate the sine and cosine of the month to encode cyclic behavior
+month_sin = pd.Series([np.sin(2 * np.pi * month / 12)], name='Month_sin')
+month_cos = pd.Series([np.cos(2 * np.pi * month / 12)], name='Month_cos')
 
 project_value = pd.Series([st.number_input("Project Value (in dollars)", value=0)], name='ProjectValue')
-
 project_description = pd.Series([st.text_area("Project Description (optional)")], name='ProjectDescription')
-
 applicant = pd.Series([st.text_input("Applicant (optional)")], name='Applicant')
-
 latitude = pd.Series([st.number_input("Latitude")], name='Latitude')
-
 longitude = pd.Series([st.number_input("Longitude")], name='Longitude')
-
 
 # Create a button to trigger predictions
 predict_button = st.button('Calculate', key='predict_button')
 
-
 if predict_button:
     # Combine all encoded features
-    all_features = pd.concat([project_value, project_description, applicant, month, day, latitude,longitude, type_of_work_df, property_use_df, specific_use_category_df, area_df], axis=1)
+    all_features = pd.concat([project_value, project_description, applicant, month_sin, month_cos,latitude,longitude, type_of_work_df, property_use_df, specific_use_category_df, area_df], axis=1)
 
-
+    # Transform the 'ProjectDescription' text data into a bag-of-words representation using the 'bagofwords_pr' model
     X_test_pr = bagofwords_pr.transform(all_features["ProjectDescription"])
+    
     # Drop the column
     columns_to_drop = ['ProjectDescription']
 
@@ -150,11 +154,14 @@ if predict_button:
 
     # Add the prefix pd for ProjectDescription for columns
     cols = [f'pd_{word}' for word in bagofwords_pr.get_feature_names()]
+    
     # Join the original test dataset and positive bag of words.
     X_test_pr = pd.DataFrame(columns=cols, data=X_test_pr.toarray())
     X_test_extended_with_pr = pd.concat([all_features, X_test_pr], axis=1)
 
+    # Transform the 'Applicant' text data into a bag-of-words representation using the 'bagofwords_pr' model
     X_test_ap = bagofwords_ap.transform(X_test_extended_with_pr["Applicant"])
+    
     # Drop the column
     columns_to_drop = ['Applicant']
 
@@ -163,6 +170,7 @@ if predict_button:
 
     # Add the prefix ap for Applicant for columns
     cols = [f'ap_{word}' for word in bagofwords_ap.get_feature_names()]
+    
     # Join the original test dataset and positive bag of words.
     X_test_ap = pd.DataFrame(columns=cols, data=X_test_ap.toarray())
     X_test_extended_with_ap = pd.concat([X_test_extended_with_pr, X_test_ap], axis=1)
@@ -173,4 +181,3 @@ if predict_button:
     prediction = model.predict(X_test_s)
 
     st.write('Estimated timeline:', math.ceil(prediction[0]), ' days')
-
