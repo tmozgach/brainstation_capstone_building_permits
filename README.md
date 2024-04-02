@@ -4,7 +4,7 @@
 - [Project Overview](#overview)
     - [Introduction](#intro)
     - [Problem Statement](#problem)
-    - [The Big Ideas](#ideas)
+    - [The Big Idea](#ideas)
     - [Potential Impact](#impact)
 - [Dataset](#dataset) 
     - [Data Description](#desc)
@@ -15,11 +15,11 @@
     - [Data Cleaning](#cleaning)
     - [Exploratory Data Analysis](#eda)
     - [Feature Engineering](#engine)
-    - [Feature Selection](#select)
     - [Model Development](#develop)
     - [Model Interpretation](#interpret)
     - [Model Deployment](#deploy)
     - [User Interface Development](#ui)
+    - [Next steps...](#next)
 ---
 
 ## ✏️ Project Overview <a class="anchor" id="overview"></a>
@@ -28,7 +28,7 @@
 
 Vancouver faces a significant housing challenge due to skyrocketing property prices and a lack of affordable housing. This project aims to explore the complex relationship between Vancouver's housing crisis and the city's building permit procedures.
 
-Using a dataset of building permits issued since 2017, I intend to uncover insights into how the permit process influences the housing shortage. The analysis will examine patterns, timelines, and permit characteristics to identify potential obstacles and inefficiencies. Understanding the details of the permit process, such as the types of constructions and regional differences, can provide valuable insights for developing effective urban development and housing strategies.
+Using a dataset of building permits issued since 2016, I intend to uncover insights into how the permit process influences the housing shortage. The analysis will examine patterns, timelines, and permit characteristics to identify potential obstacles and inefficiencies. Understanding the details of the permit process, such as the types of constructions and regional differences, can provide valuable insights for developing effective urban development and housing strategies.
 
 ### 🎯 Problem Statement <a class="anchor" id="problem"></a>
 The goal is to provide evidence-based insights that inform policy decisions, aid city planning, and foster collaborations among stakeholders. Through this project, I aspire to contribute meaningful knowledge towards addressing Vancouver's housing affordability challenge and creating a more accessible and equitable living environment for its residents.
@@ -100,6 +100,7 @@ Dataset can be found [here](https://opendata.vancouver.ca/explore/dataset/issued
     
 - Geospatial Coverage
     - Vancouver, Canada
+      
 [Back to top](#toc)
 
 ---
@@ -114,7 +115,7 @@ Dataset can be found [here](https://opendata.vancouver.ca/explore/dataset/issued
 ### ✅ Exploratory Data Analysis 🔍 <a class="anchor" id="eda"></a>
 The analysis of permit data based on the below plots reveals valuable insights into the dynamics of construction activities and the permit application process in the given dataset.
 
-**General Insights:**
+_General Insights:_
 
 **Property Usage and Permit Types:**
 - Predominantly, permits are issued for Dwelling Uses (single detached house, duplex) and Office Uses (General office). The number of permits for Dwelling Uses is approximately five times higher than that for Office Uses.
@@ -127,14 +128,14 @@ The analysis of permit data based on the below plots reveals valuable insights i
 **Processing Times:**
 - On average, the waiting time for permit issuance is 136 days. However, the presence of numerous outliers suggests significant variations in processing times.
 
-**Relationships and Correlations:**
+_Relationships and Correlations:_
 
 **Property Values and Waiting Times:**
 - There is a positive correlation between higher property values and longer waiting times for permits, which is reasonable as more expensive projects often require more thorough analysis.
 - The average waiting time for a new building permit is 248 days, while for Addition/Alteration, it is 81 days. This disparity is expected, considering that new building projects typically involve more complexities.
 - Dwelling Uses exhibit an average waiting time of 159 days, significantly higher than other property uses such as Office Uses, which averages 52 days. This discrepancy may be attributed to a higher volume of Dwelling Uses applications, potentially leading to a shortage of staff resources.
 
-**Seasonal Trends:**
+_Seasonal Trends:_
 
 **Monthly Permit Applications:**
 - There is a consistent upward trend in monthly permit applications, with May and June consistently exhibiting the highest numbers on average.
@@ -146,7 +147,7 @@ The analysis of permit data based on the below plots reveals valuable insights i
 - The sharp decline in the middle can be attributed to the impact of the Covid lockdown.
 - The year 2023 shows an even lower number of issued permits compared to the Covid period, due to the lower number of applications.
 
-**Overall Insights:**
+_Overall Insights:_
 After experiencing a decline during the COVID-19 period, the number of permit applications exhibited a subsequent increase around the beginning of 2022. However, surprisingly, in 2023, the application count dropped even lower than during the COVID-19 period. It's important to note that the decrease in issued permits in 2023 is directly tied to the overall low level of applications rather than any issues related to permit approval.
 
 ### Distribution of categorical columns
@@ -171,16 +172,25 @@ After experiencing a decline during the COVID-19 period, the number of permit ap
 ### Trend-Seasonal Decomposition for PermitNumberCreatedDate
 ![Trend Seasonal Decomposition of Permit Number Created Date](https://raw.githubusercontent.com/tmozgach/brainstation_capstone_building_permits/main/plots/TrendSeasonalDecompositionPermitNumberCreatedDate.png)
 
+[Back to top](#toc)
+
+---
+
 ### ✅ Feature Engineering 🔧 <a class="anchor" id="engine"></a>
-- One Hot Encoding:  TypeOfWork, PropertyUse (top 12 frequent), SpecificUseCategory (top 22), GeoLocalArea
-- Drop columns: IssueYear, IssueDate , PermitNumber, YearMonth, Geom
-- Bag-of-Words (Count): ProjectDescription, Applicant
+- **One Hot Encoding**:  TypeOfWork, PropertyUse (top 12 frequent), SpecificUseCategory (top 22), GeoLocalArea
+- **Drop columns**: IssueYear, IssueDate , PermitNumber, YearMonth, Geom
+- **Bag-of-Words (Count)**: ProjectDescription, Applicant
 ![Frequency of Words in Project Description](https://github.com/tmozgach/brainstation_capstone_building_permits/raw/main/plots/FreqWordsProjectDescription.png)
 ![Frequency of Words in Applicant](https://github.com/tmozgach/brainstation_capstone_building_permits/raw/main/plots/FreqWordsApplicant.png)
-- Sine and cosine transformations are used to capture the cyclical nature of time: PermitNumberCreatedDate
+- **Sine and cosine transformations** are used to capture the cyclical nature of time: PermitNumberCreatedDate
+
+[Back to top](#toc)
+
+---
 
 ### ⏳ Model Development 🔨 <a class="anchor" id="develop"></a>
 - Notes:
+0) Predict: _PermitElapsedDays_
 1) `Robust scaler` is used because there are a lot of outliers.
 2) `Ridge` regression is useful when multicollinearity is present among the predictors. 
 3) Max depth for the `Decision tree` is 8.
@@ -211,7 +221,11 @@ Mean Absolute Error (`MAE`): On average, the best model's prediction (XGBoost) o
 
 `Time taken for training the model:` 18.856444160275988 hours
 
-### 🔜 Model Interpretation 🔢 <a class="anchor" id="interpret"></a>
+[Back to top](#toc)
+
+---
+
+### ✅ Model Interpretation 🔢 <a class="anchor" id="interpret"></a>
 Keep in mind that `SHAP` values provide insights into the contribution of each feature to individual predictions and do not necessarily indicate a causal relationship.
 ### Most important features:
 ### ProjectValue:
@@ -237,6 +251,7 @@ This reflects the complex nature of new construction projects, which may require
 These may include renovations or alterations, which could involve less extensive review processes.
 
 Color Representation:
+
 Mostly `Red`: Indicates longer approval times for new building permits.
 
 Mostly `Blue`: Suggests shorter approval times for other permit types
@@ -255,8 +270,11 @@ if a project is planned to be built in `Downtown` or `Fairview`, it might take m
 
 ![SHAP](https://github.com/tmozgach/brainstation_capstone_building_permits/blob/main/plots/SHAP.png)
 
+[Back to top](#toc)
 
-### 🔜  Model Deployment 🚛 <a class="anchor" id="deploy"></a>
+---
+
+### ✅  Model Deployment 🚛 <a class="anchor" id="deploy"></a>
 ### Run the Web Application locally
 
 Clone the project
@@ -285,6 +303,27 @@ Run it
 
 ```streamlit run app.py```
 
-### 🔜 User Interface Development 🖥️ <a class="anchor" id="ui"></a>
+[Back to top](#toc)
+
+---
+### ✅ User Interface Development 🖥️ <a class="anchor" id="ui"></a>
 The simple web UI with streamlit Python API, where the user may input the data and make prediction with the best model.
 ![UI Screenshot](https://github.com/tmozgach/brainstation_capstone_building_permits/raw/main/plots/UI.png)
+
+[Back to top](#toc)
+
+---
+
+### Next Steps... <a class="anchor" id="next"></a>
+`User Interface (UI) Enhancement:` 
+Enable users to select a location directly from the map instead of manually inputting latitude and longitude coordinates.
+
+`Data Enhancement:`
+Collect data from other municipalities in British Columbia or the Greater Vancouver area.
+
+`Mode Enhancement:`
+With more data available, try NN models.
+
+[Back to top](#toc)
+
+---
