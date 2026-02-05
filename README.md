@@ -1,3 +1,4 @@
+
 # 🏡 Unraveling Vancouver's Housing Challenge through Building Permits Analysis 🏡 
 
 ## 📒 Table of Contents <a class="anchor" id="toc"></a>
